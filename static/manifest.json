@@ -1,0 +1,15 @@
+{
+  "name": "Panini World Cup 2026",
+  "short_name": "Panini2026",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0f172a",
+  "theme_color": "#0f172a",
+  "icons": [
+    {
+      "src": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1b/Panini_logo.svg/512px-Panini_logo.svg.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
