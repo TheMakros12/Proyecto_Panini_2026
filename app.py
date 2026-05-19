@@ -82,8 +82,7 @@ def album():
         {"nombre": "Grupo J", "equipos": ["ARG", "ALG", "AUT", "JOR"]},
         {"nombre": "Grupo K", "equipos": ["POR", "COD", "UZB", "COL"]},
         {"nombre": "Grupo L", "equipos": ["ENG", "CRO", "GHA", "PAN"]},
-        {"nombre": "History", "equipos": ["FWC2"]},
-        {"nombre": "Coca Cola", "equipos": ["CC"]}
+        {"nombre": "History", "equipos": ["FWC2"]}
     ]
         
     return jsonify({'estructura': estructura, 'cromos': data_by_equipo})

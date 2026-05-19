@@ -38,8 +38,7 @@ def inicializar_album_completo(user_id):
         'FRA': 20, 'SEN': 20, 'IRQ': 20, 'NOR': 20,
         'ARG': 20, 'ALG': 20, 'AUT': 20, 'JOR': 20,
         'POR': 20, 'COD': 20, 'UZB': 20, 'COL': 20,
-        'ENG': 20, 'CRO': 20, 'GHA': 20, 'PAN': 20,
-        'CC': 12
+        'ENG': 20, 'CRO': 20, 'GHA': 20, 'PAN': 20
     }
 
     for equipo, cantidad in secciones.items():
@@ -186,8 +185,7 @@ def repair_user_collection(user_id):
         'FRA': 20, 'SEN': 20, 'IRQ': 20, 'NOR': 20,
         'ARG': 20, 'ALG': 20, 'AUT': 20, 'JOR': 20,
         'POR': 20, 'COD': 20, 'UZB': 20, 'COL': 20,
-        'ENG': 20, 'CRO': 20, 'GHA': 20, 'PAN': 20,
-        'CC': 12
+        'ENG': 20, 'CRO': 20, 'GHA': 20, 'PAN': 20
     }
 
     for equipo, cantidad in secciones.items():
