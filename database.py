@@ -9,9 +9,12 @@ def get_connection():
 
 def normalize_cromo_id(id_cromo):
     id_cromo = id_cromo.strip().upper()
+    # Capturar equipo y número, permitiendo que el número sea 0 o 00
     match = re.match(r'^([A-Z]+)[-\s]*0*(\d+)$', id_cromo)
     if match:
-        return f"{match.group(1)} {match.group(2)}"
+        equipo = match.group(1)
+        numero = int(match.group(2))
+        return f"{equipo} {numero}"
     return id_cromo
 
 def inicializar_album_completo(user_id):
@@ -36,11 +39,13 @@ def inicializar_album_completo(user_id):
         'ARG': 20, 'ALG': 20, 'AUT': 20, 'JOR': 20,
         'POR': 20, 'COD': 20, 'UZB': 20, 'COL': 20,
         'ENG': 20, 'CRO': 20, 'GHA': 20, 'PAN': 20,
-        'CC': 14
+        'CC': 12
     }
 
     for equipo, cantidad in secciones.items():
-        for i in range(1, cantidad + 1):
+        # FWC empieza en 0 (cromo 00)
+        start = 0 if equipo == 'FWC' else 1
+        for i in range(start, cantidad + 1):
             id_cromo = f"{equipo} {i}"
             cursor.execute('''
                 INSERT INTO cromos (user_id, id, equipo, numero, nombre, cantidad)
@@ -119,7 +124,7 @@ def get_faltantes(user_id):
     inicializar_album_completo(user_id)
     conn = get_connection()
     cursor = conn.cursor()
-    cursor.execute('SELECT equipo, numero FROM cromos WHERE user_id = ? AND cantidad = 0 ORDER BY equipo, numero', (user_id,))
+    cursor.execute('SELECT equipo, numero, nombre FROM cromos WHERE user_id = ? AND cantidad = 0 ORDER BY equipo, numero', (user_id,))
     rows = cursor.fetchall()
     conn.close()
     return rows
@@ -137,7 +142,7 @@ def get_all_cromos(user_id):
     inicializar_album_completo(user_id)
     conn = get_connection()
     cursor = conn.cursor()
-    cursor.execute('SELECT equipo, numero, cantidad FROM cromos WHERE user_id = ?', (user_id,))
+    cursor.execute('SELECT equipo, numero, cantidad, nombre FROM cromos WHERE user_id = ?', (user_id,))
     rows = cursor.fetchall()
     conn.close()
     return rows
@@ -163,6 +168,49 @@ def get_historial(user_id, limit=10):
     rows = cursor.fetchall()
     conn.close()
     return rows
+
+def repair_user_collection(user_id):
+    """Añade los cromos que falten en la colección de un usuario (como el FWC 0)"""
+    conn = get_connection()
+    cursor = conn.cursor()
+    
+    secciones = {
+        'FWC': 19, 'MEX': 20, 'RSA': 20, 'KOR': 20, 'CZE': 20,
+        'CAN': 20, 'BIH': 20, 'QAT': 20, 'SUI': 20,
+        'BRA': 20, 'MAR': 20, 'HAI': 20, 'SCO': 20,
+        'USA': 20, 'PAR': 20, 'AUS': 20, 'TUR': 20,
+        'GER': 20, 'CUW': 20, 'CIV': 20, 'ECU': 20,
+        'NED': 20, 'JPN': 20, 'SWE': 20, 'TUN': 20,
+        'BEL': 20, 'EGY': 20, 'IRN': 20, 'NZL': 20,
+        'ESP': 20, 'CPV': 20, 'KSA': 20, 'URU': 20,
+        'FRA': 20, 'SEN': 20, 'IRQ': 20, 'NOR': 20,
+        'ARG': 20, 'ALG': 20, 'AUT': 20, 'JOR': 20,
+        'POR': 20, 'COD': 20, 'UZB': 20, 'COL': 20,
+        'ENG': 20, 'CRO': 20, 'GHA': 20, 'PAN': 20,
+        'CC': 12
+    }
+
+    for equipo, cantidad in secciones.items():
+        start = 0 if equipo == 'FWC' else 1
+        for i in range(start, cantidad + 1):
+            id_cromo = f"{equipo} {i}"
+            cursor.execute('''
+                INSERT OR IGNORE INTO cromos (user_id, id, equipo, numero, nombre, cantidad)
+                VALUES (?, ?, ?, ?, ?, 0)
+            ''', (user_id, id_cromo, equipo, i, ""))
+            
+    conn.commit()
+    conn.close()
+
+def update_cromo_name(user_id, id_cromo, nombre):
+    conn = get_connection()
+    cursor = conn.cursor()
+    id_cromo = normalize_cromo_id(id_cromo)
+    cursor.execute('''
+        UPDATE cromos SET nombre = ? WHERE user_id = ? AND id = ?
+    ''', (nombre, user_id, id_cromo))
+    conn.commit()
+    conn.close()
 
 if __name__ == '__main__':
     print("Inicializando base de datos...")

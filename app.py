@@ -50,10 +50,10 @@ def album():
     rows = database.get_all_cromos(user_id)
     
     data_by_equipo = {}
-    for equipo, numero, cantidad in rows:
+    for equipo, numero, cantidad, nombre in rows:
         if equipo not in data_by_equipo:
             data_by_equipo[equipo] = []
-        data_by_equipo[equipo].append({'numero': numero, 'cantidad': cantidad})
+        data_by_equipo[equipo].append({'numero': numero, 'cantidad': cantidad, 'nombre': nombre})
             
     for eq in data_by_equipo:
         data_by_equipo[eq].sort(key=lambda x: x['numero'])
@@ -78,7 +78,8 @@ def album():
         {"nombre": "Grupo J", "equipos": ["ARG", "ALG", "AUT", "JOR"]},
         {"nombre": "Grupo K", "equipos": ["POR", "COD", "UZB", "COL"]},
         {"nombre": "Grupo L", "equipos": ["ENG", "CRO", "GHA", "PAN"]},
-        {"nombre": "Finales", "equipos": ["FWC2", "CC"]}
+        {"nombre": "History", "equipos": ["FWC2"]},
+        {"nombre": "Coca Cola", "equipos": ["CC"]}
     ]
         
     return jsonify({'estructura': estructura, 'cromos': data_by_equipo})
@@ -127,6 +128,19 @@ def usuarios():
     rows = cursor.fetchall()
     conn.close()
     return jsonify([r[0] for r in rows])
+
+@app.route('/api/update_name', methods=['POST'])
+def update_name():
+    req = request.json
+    id_cromo = req.get('id')
+    nombre = req.get('nombre')
+    user_id = req.get('user_id', 'MarcosDB12')
+    
+    if not id_cromo:
+        return jsonify({'error': 'No ID provided'}), 400
+        
+    database.update_cromo_name(user_id, id_cromo, nombre)
+    return jsonify({'success': True})
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=5000)

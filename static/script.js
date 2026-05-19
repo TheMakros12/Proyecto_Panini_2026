@@ -36,6 +36,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     loadUsers();
     loadAllData();
+    switchTab('dashboard');
 
     document.getElementById('add-form').addEventListener('submit', async (e) => {
         e.preventDefault();
@@ -134,11 +135,15 @@ function formatRanges(numeros) {
         if (n === fin + 1) {
             fin = n;
         } else {
-            rangos.push(inicio === fin ? inicio.toString() : `${inicio}-${fin}`);
+            let startStr = inicio === 0 ? "00" : inicio.toString();
+            let endStr = fin === 0 ? "00" : fin.toString();
+            rangos.push(inicio === fin ? startStr : `${startStr}-${endStr}`);
             inicio = fin = n;
         }
     }
-    rangos.push(inicio === fin ? inicio.toString() : `${inicio}-${fin}`);
+    let startStr = inicio === 0 ? "00" : inicio.toString();
+    let endStr = fin === 0 ? "00" : fin.toString();
+    rangos.push(inicio === fin ? startStr : `${startStr}-${endStr}`);
     return rangos.join(', ');
 }
 
@@ -160,6 +165,7 @@ async function loadAlbum() {
     fullAlbumData = await res.json();
     renderFaltantesFromAlbum();
     renderRepetidosFromAlbum();
+    renderGroupProgress();
 }
 
 function renderFaltantesFromAlbum() {
@@ -173,10 +179,6 @@ function renderFaltantesFromAlbum() {
         let hasContent = false;
         const cardsContainer = document.createElement('div');
         cardsContainer.className = 'grid-container group-grid';
-        
-        if (grupo.equipos.length === 1 && (grupo.equipos[0] === 'FWC1' || grupo.equipos[0] === 'CC')) {
-            cardsContainer.classList.add('center-single');
-        }
 
         for (const equipo of grupo.equipos) {
             const cromos = fullAlbumData.cromos[equipo] || [];
@@ -230,10 +232,6 @@ function renderRepetidosFromAlbum() {
         
         const cardsContainer = document.createElement('div');
         cardsContainer.className = 'grid-container group-grid';
-        
-        if (grupo.equipos.length === 1 && (grupo.equipos[0] === 'FWC1' || grupo.equipos[0] === 'CC')) {
-            cardsContainer.classList.add('center-single');
-        }
 
         for (const equipo of grupo.equipos) {
             const cromos = fullAlbumData.cromos[equipo] || [];
@@ -242,7 +240,10 @@ function renderRepetidosFromAlbum() {
             if (repetidos.length > 0) {
                 hayRepetidos = true;
                 groupHasContent = true;
-                const textArr = repetidos.map(i => i.cantidad > 2 ? `${i.numero}(x${i.cantidad-1})` : i.numero);
+                const textArr = repetidos.map(i => {
+                    let numStr = i.numero === 0 ? "00" : i.numero;
+                    return i.cantidad > 2 ? `${numStr}(x${i.cantidad-1})` : numStr;
+                });
                 
                 let total = cromos.length;
                 let faltantes = cromos.filter(c => c.cantidad === 0).length;
@@ -312,14 +313,29 @@ function openModal(equipo) {
     const cromos = fullAlbumData.cromos[equipo] || [];
     
     cromos.forEach(c => {
+        const btnContainer = document.createElement('div');
+        btnContainer.className = 'cromo-item';
+        
         const btn = document.createElement('button');
         btn.className = 'cromo-btn';
-        btn.innerText = c.numero;
+        let numStr = c.numero === 0 ? '00' : c.numero;
+        btn.innerText = numStr;
+        
+        const nameLabel = document.createElement('div');
+        nameLabel.className = 'cromo-name';
+        nameLabel.innerText = c.nombre || '-';
+        nameLabel.onclick = (e) => {
+            e.stopPropagation();
+            const newName = prompt(`Nombre para ${equipo} ${numStr}:`, c.nombre || '');
+            if (newName !== null) {
+                updatePlayerName(equipo, c.numero, newName);
+            }
+        };
         
         if (c.cantidad === 1) btn.classList.add('got');
         if (c.cantidad > 1) {
             btn.classList.add('rep');
-            btn.innerText = `${c.numero} (+${c.cantidad-1})`;
+            btn.innerText = `${numStr} (+${c.cantidad-1})`;
         }
         
         btn.onclick = async () => {
@@ -350,18 +366,21 @@ function openModal(equipo) {
             
             btn.style.opacity = '1';
             btn.className = 'cromo-btn'; 
-            btn.innerText = c.numero;
+            let numStr = c.numero === 0 ? '00' : c.numero;
+            btn.innerText = numStr;
             
             if (c.cantidad === 1) btn.classList.add('got');
             if (c.cantidad > 1) {
                 btn.classList.add('rep');
-                btn.innerText = `${c.numero} (+${c.cantidad-1})`;
+                btn.innerText = `${numStr} (+${c.cantidad-1})`;
             }
             
             loadAllData();
         };
         
-        grid.appendChild(btn);
+        btnContainer.appendChild(btn);
+        btnContainer.appendChild(nameLabel);
+        grid.appendChild(btnContainer);
     });
     
     document.getElementById('modal-overlay').classList.remove('hidden');
@@ -372,13 +391,85 @@ function closeModal() {
 }
 
 function switchTab(tabId) {
-    document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-    event.target.classList.add('active');
+    // Top Tabs (PC)
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.classList.remove('active');
+        if (btn.innerText.toLowerCase().includes(tabId)) btn.classList.add('active');
+    });
+
+    // Bottom Nav (Mobile/Web)
+    document.querySelectorAll('.nav-item').forEach(item => {
+        item.classList.remove('active');
+        const labelEl = item.querySelector('.nav-label');
+        if (labelEl) {
+            const label = labelEl.innerText.toLowerCase();
+            if (label === 'stats' && tabId === 'dashboard') item.classList.add('active');
+            if (label === 'álbum' && tabId === 'faltantes') item.classList.add('active');
+            if (label === 'repes' && tabId === 'repetidos') item.classList.add('active');
+        }
+    });
+
+    // Content visibility
+    const dashboardSections = [
+        document.querySelector('.main-layout'),
+        document.getElementById('group-progress-section'),
+        document.querySelector('.action-buttons')
+    ];
+
+    if (tabId === 'dashboard') {
+        dashboardSections.forEach(s => s?.classList.remove('hidden'));
+        document.getElementById('tab-faltantes').classList.add('hidden');
+        document.getElementById('tab-repetidos').classList.add('hidden');
+    } else {
+        dashboardSections.forEach(s => s?.classList.add('hidden'));
+        document.getElementById('tab-faltantes').classList.add('hidden');
+        document.getElementById('tab-repetidos').classList.add('hidden');
+        
+        const targetTab = document.getElementById(`tab-${tabId}`);
+        if (targetTab) targetTab.classList.remove('hidden');
+    }
     
-    document.getElementById('tab-faltantes').classList.add('hidden');
-    document.getElementById('tab-repetidos').classList.add('hidden');
-    
-    document.getElementById(`tab-${tabId}`).classList.remove('hidden');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function renderGroupProgress() {
+    const grid = document.getElementById('group-progress-grid');
+    if (!grid) return;
+    grid.innerHTML = '';
+
+    fullAlbumData.estructura.forEach(grupo => {
+        let total = 0;
+        let conseguidos = 0;
+
+        grupo.equipos.forEach(equipo => {
+            const cromos = fullAlbumData.cromos[equipo] || [];
+            total += cromos.length;
+            conseguidos += cromos.filter(c => c.cantidad > 0).length;
+        });
+
+        const progress = total > 0 ? Math.round((conseguidos / total) * 100) : 0;
+
+        const card = document.createElement('div');
+        card.className = 'group-mini-card';
+        card.onclick = () => {
+            switchTab('faltantes');
+            setTimeout(() => {
+                const groupTitle = Array.from(document.querySelectorAll('.group-title')).find(el => el.innerText === grupo.nombre);
+                if (groupTitle) groupTitle.scrollIntoView({ behavior: 'smooth' });
+            }, 100);
+        };
+
+        card.innerHTML = `
+            <div class="group-mini-header">
+                <span>${grupo.nombre}</span>
+                <span>${progress}%</span>
+            </div>
+            <div class="group-mini-bar-bg">
+                <div class="group-mini-bar-fill" style="width: ${progress}%"></div>
+            </div>
+        `;
+        grid.appendChild(card);
+    });
 }
 
 function showToast(msg) {
@@ -450,10 +541,32 @@ async function copyRepetidos() {
         text = "No tengo repetidos todavía.";
     } else {
         keys.forEach(eq => {
-            let nums = repetidos[eq].map(c => c.cantidad > 2 ? `${c.numero}(x${c.cantidad-1})` : c.numero);
+            let nums = repetidos[eq].map(c => {
+                let numStr = c.numero === 0 ? "00" : c.numero;
+                return c.cantidad > 2 ? `${numStr}(x${c.cantidad-1})` : numStr;
+            });
             text += `*${eq}*: ${nums.join(', ')}\n`;
         });
     }
     
     copyTextToClipboard(text);
+}
+
+async function updatePlayerName(equipo, numero, nombre) {
+    const dbEquipo = equipo.startsWith('FWC') ? 'FWC' : equipo;
+    const res = await fetch('/api/update_name', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: `${dbEquipo} ${numero}`, nombre, user_id: activeUser })
+    });
+    const data = await res.json();
+    if (data.success) {
+        showToast("Nombre actualizado");
+        loadAllData();
+        // Opcional: refrescar modal si sigue abierto
+        const modalVisible = !document.getElementById('modal-overlay').classList.contains('hidden');
+        if (modalVisible) {
+            setTimeout(() => openModal(equipo), 100);
+        }
+    }
 }
