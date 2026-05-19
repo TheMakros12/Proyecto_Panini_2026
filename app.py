@@ -1,6 +1,6 @@
 import os
 import sqlite3
-from flask import Flask, render_template, jsonify, request
+from flask import Flask, render_template, jsonify, request, send_from_directory
 import database
 
 app = Flask(__name__)
@@ -8,6 +8,10 @@ app = Flask(__name__)
 @app.route('/')
 def index():
     return render_template('index.html')
+
+@app.route('/assets/<path:path>')
+def send_assets(path):
+    return send_from_directory('assets', path)
 
 @app.route('/api/stats')
 def stats():

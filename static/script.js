@@ -16,6 +16,62 @@ const FLAGS_CODES = {
     "ENG": "gb-eng", "CRO": "hr", "GHA": "gh", "PAN": "pa"
 };
 
+const TEAM_FULL_NAMES = {
+    "FWC": "Copa Mundial FIFA",
+    "FWC1": "Copa Mundial FIFA",
+    "FWC2": "Copa Mundial FIFA",
+    "MEX": "México",
+    "RSA": "Sudáfrica",
+    "KOR": "Corea del Sur",
+    "CZE": "República Checa",
+    "CAN": "Canadá",
+    "BIH": "Bosnia y Herzegovina",
+    "QAT": "Catar",
+    "SUI": "Suiza",
+    "BRA": "Brasil",
+    "MAR": "Marruecos",
+    "HAI": "Haití",
+    "SCO": "Escocia",
+    "USA": "Estados Unidos",
+    "PAR": "Paraguay",
+    "AUS": "Australia",
+    "TUR": "Turquía",
+    "GER": "Alemania",
+    "CUW": "Curazao",
+    "CIV": "Costa de Marfil",
+    "ECU": "Ecuador",
+    "NED": "Países Bajos",
+    "JPN": "Japón",
+    "SWE": "Suecia",
+    "TUN": "Túnez",
+    "BEL": "Bélgica",
+    "EGY": "Egipto",
+    "IRN": "Irán",
+    "NZL": "Nueva Zelanda",
+    "ESP": "España",
+    "CPV": "Cabo Verde",
+    "KSA": "Arabia Saudita",
+    "URU": "Uruguay",
+    "FRA": "Francia",
+    "SEN": "Senegal",
+    "IRQ": "Irak",
+    "NOR": "Noruega",
+    "ARG": "Argentina",
+    "ALG": "Argelia",
+    "AUT": "Austria",
+    "JOR": "Jordania",
+    "POR": "Portugal",
+    "COD": "República Democrática del Congo",
+    "UZB": "Uzbekistán",
+    "COL": "Colombia",
+    "ENG": "Inglaterra",
+    "CRO": "Croacia",
+    "GHA": "Ghana",
+    "PAN": "Panamá",
+    "CC": "Clásicos / Leyendas"
+};
+
+
 function getTeamName(equipo) {
     let eq = (equipo === 'FWC1' || equipo === 'FWC2') ? 'FWC' : equipo;
     if (eq === 'FWC') return '🏆 FWC';
@@ -101,6 +157,7 @@ function loadAllData() {
     loadStats();
     loadAlbum();
     loadHistory();
+    renderTeamsCompactCards();
 }
 
 async function loadHistory() {
@@ -166,6 +223,7 @@ async function loadAlbum() {
     renderFaltantesFromAlbum();
     renderRepetidosFromAlbum();
     renderGroupProgress();
+    renderTeamsCompactCards();
 }
 
 function renderFaltantesFromAlbum() {
@@ -187,7 +245,10 @@ function renderFaltantesFromAlbum() {
             if (faltantes.length > 0) {
                 hasContent = true;
                 const card = document.createElement('div');
-                card.className = 'team-card';
+                const teamInfo = TEAM_COLORS[equipo] || { flag: '⚽' };
+                const fullName = TEAM_FULL_NAMES[equipo] || equipo;
+                const crestPath = `/assets/crests/${equipo.toLowerCase()}.png`;
+                card.className = `team-card ${equipo.toLowerCase()}`;
                 card.onclick = () => openModal(equipo);
                 
                 let total = cromos.length;
@@ -196,7 +257,12 @@ function renderFaltantesFromAlbum() {
                 
                 card.innerHTML = `
                     <div class="team-header">
-                        <span class="team-name">${getTeamName(equipo)}</span>
+                        <span class="team-name">
+                            <img src="${crestPath}" alt="${equipo}" class="team-flag-crest"
+                                onerror="this.style.display='none'; this.nextElementSibling.style.display='inline';">
+                            <span class="team-flag-fallback" style="display:none;">${teamInfo.flag}</span>
+                            ${fullName}
+                        </span>
                         <span class="team-count">Faltan ${faltantes.length}</span>
                     </div>
                     <div class="team-numbers">${formatRanges(faltantes)}</div>
@@ -245,17 +311,26 @@ function renderRepetidosFromAlbum() {
                     return i.cantidad > 2 ? `${numStr}(x${i.cantidad-1})` : numStr;
                 });
                 
+                const teamInfo = TEAM_COLORS[equipo] || { flag: '⚽' };
+                const fullName = TEAM_FULL_NAMES[equipo] || equipo;
+                const crestPath = `/assets/crests/${equipo.toLowerCase()}.png`;
+                
                 let total = cromos.length;
                 let faltantes = cromos.filter(c => c.cantidad === 0).length;
                 let conseguidos = total - faltantes;
                 let progress = total > 0 ? (conseguidos / total) * 100 : 0;
                 
                 const card = document.createElement('div');
-                card.className = 'team-card';
+                card.className = `team-card ${equipo.toLowerCase()}`;
                 card.onclick = () => openModal(equipo);
                 card.innerHTML = `
                     <div class="team-header">
-                        <span class="team-name">${getTeamName(equipo)}</span>
+                        <span class="team-name">
+                            <img src="${crestPath}" alt="${equipo}" class="team-flag-crest"
+                                onerror="this.style.display='none'; this.nextElementSibling.style.display='inline';">
+                            <span class="team-flag-fallback" style="display:none;">${teamInfo.flag}</span>
+                            ${fullName}
+                        </span>
                         <span class="team-count">${repetidos.length} repetidos</span>
                     </div>
                     <div class="team-numbers">${textArr.join(', ')}</div>
@@ -285,7 +360,26 @@ function renderRepetidosFromAlbum() {
 function openModal(equipo) {
     const title = document.getElementById('modal-title');
     const grid = document.getElementById('modal-grid');
-    title.innerHTML = getTeamName(equipo);
+    
+    // Ruta del escudo (en minúsculas para compatibilidad en Linux/Railway)
+    const crestPath = `/assets/crests/${equipo.toLowerCase()}.png`;
+    const teamInfo = TEAM_COLORS[equipo] || { flag: '⚽' };
+    const fullName = TEAM_FULL_NAMES[equipo] || equipo;
+
+    title.innerHTML = `
+        <div class="modal-title-container">
+            <img 
+                src="${crestPath}" 
+                alt="${equipo}" 
+                class="modal-team-crest"
+                onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
+            >
+            <div class="modal-team-crest-fallback" style="display: none;">
+                ${teamInfo.flag}
+            </div>
+            <span class="modal-team-name">${fullName}</span>
+        </div>
+    `;
     grid.innerHTML = '';
     
     const toggle = document.getElementById('mode-toggle');
@@ -413,6 +507,7 @@ function switchTab(tabId) {
     const dashboardSections = [
         document.querySelector('.main-layout'),
         document.getElementById('group-progress-section'),
+        document.getElementById('teams-compact-section'),
         document.querySelector('.action-buttons')
     ];
 
@@ -569,4 +664,117 @@ async function updatePlayerName(equipo, numero, nombre) {
             setTimeout(() => openModal(equipo), 100);
         }
     }
+}
+
+/* ========================================
+   OPCIÓN 2: TARJETAS COMPACTAS CON ESCUDOS
+   ======================================== */
+
+// Mapeo de códigos de equipo a colores
+const TEAM_COLORS = {
+    'ARG': { class: 'arg', flag: '🇦🇷' },
+    'ESP': { class: 'esp', flag: '🇪🇸' },
+    'FRA': { class: 'fra', flag: '🇫🇷' },
+    'BRA': { class: 'bra', flag: '🇧🇷' },
+    'ALE': { class: 'ale', flag: '🇩🇪' },
+    'POR': { class: 'por', flag: '🇵🇹' },
+    'ITA': { class: 'ita', flag: '🇮🇹' },
+    'URU': { class: 'uru', flag: '🇺🇾' },
+    'MEX': { class: 'mex', flag: '🇲🇽' },
+    'ENG': { class: 'eng', flag: '🇬🇧' },
+    'CAN': { class: 'can', flag: '🇨🇦' },
+    'USA': { class: 'usa', flag: '🇺🇸' },
+    'COL': { class: 'col', flag: '🇨🇴' },
+    'PAR': { class: 'par', flag: '🇵🇾' },
+    'NED': { class: 'ned', flag: '🇳🇱' },
+    'BEL': { class: 'bel', flag: '🇧🇪' },
+    'JPN': { class: 'jpn', flag: '🇯🇵' },
+    'SUI': { class: 'sui', flag: '🇨🇭' },
+    'SWE': { class: 'swe', flag: '🇸🇪' },
+    'NOR': { class: 'nor', flag: '🇳🇴' },
+    'CRO': { class: 'cro', flag: '🇭🇷' },
+    'GER': { class: 'ger', flag: '🇩🇪' },
+    'SEN': { class: 'sen', flag: '🇸🇳' },
+    'MAR': { class: 'mar', flag: '🇲🇦' },
+    'HAI': { class: 'hai', flag: '🇭🇹' },
+    'GHA': { class: 'gha', flag: '🇬🇭' },
+    'EGY': { class: 'egy', flag: '🇪🇬' },
+    'FWC': { class: 'fwc', flag: '🏆' },
+    'CC': { class: 'cc', flag: '✨' },
+};
+
+function openGroupModal(equipo) {
+    openModal(equipo);
+}
+
+function renderTeamsCompactCards() {
+    if (!fullAlbumData) return;
+
+    const container = document.getElementById('teams-compact-grid');
+    if (!container) return;
+
+    container.innerHTML = '';
+
+    const { estructura, cromos } = fullAlbumData;
+
+    // Crear lista ordenada de equipos
+    const teamsToRender = [];
+    estructura.forEach(group => {
+        group.equipos.forEach(equipo => {
+            if (cromos[equipo] && cromos[equipo].length > 0) {
+                teamsToRender.push(equipo);
+            }
+        });
+    });
+
+    // Renderizar cada tarjeta
+    teamsToRender.forEach(equipo => {
+        const cromosEquipo = cromos[equipo] || [];
+        const conseguidos = cromosEquipo.filter(c => c.cantidad >= 1).length;
+        const total = cromosEquipo.length;
+        const porcentaje = total > 0 ? Math.round((conseguidos / total) * 100) : 0;
+
+        const card = createTeamCompactCard(equipo, conseguidos, total, porcentaje);
+        container.appendChild(card);
+    });
+}
+
+function createTeamCompactCard(equipo, conseguidos, total, porcentaje) {
+    const card = document.createElement('div');
+    const teamInfo = TEAM_COLORS[equipo] || { flag: '⚽' };
+    const isCompleted = conseguidos === total && total > 0;
+
+    // Clases dinámicas - siempre usar el código del equipo en minúsculas para el CSS de color
+    const classes = ['team-compact-card', equipo.toLowerCase()];
+    if (isCompleted) classes.push('completed');
+    if (conseguidos === 0) classes.push('empty');
+
+    card.className = classes.join(' ');
+    card.onclick = () => openGroupModal(equipo); // Abre el modal del equipo
+
+    // Ruta del escudo (en minúsculas para compatibilidad en Linux/Railway)
+    const crestPath = `/assets/crests/${equipo.toLowerCase()}.png`;
+
+    card.innerHTML = `
+        <div class="team-compact-header">
+            <img 
+                src="${crestPath}" 
+                alt="${equipo}" 
+                class="team-crest"
+                onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
+            >
+            <div class="team-crest-fallback" style="display: none;">
+                ${teamInfo.flag}
+            </div>
+            <div class="team-compact-info">
+                <p class="team-compact-name">${equipo}</p>
+                <p class="team-compact-count">${conseguidos}/${total}</p>
+            </div>
+        </div>
+        <div class="team-compact-progress">
+            <div class="team-compact-progress-fill" style="width: ${porcentaje}%;"></div>
+        </div>
+    `;
+
+    return card;
 }

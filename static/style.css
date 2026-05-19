@@ -97,9 +97,11 @@ button.btn-primary:hover { background: var(--accent-hover); transform: translate
 .grid-container.hidden, #tab-faltantes.hidden, #tab-repetidos.hidden { display: none; }
 .team-card { background: var(--glass-bg); border: 1px solid var(--glass-border); border-radius: 24px; padding: 1.5rem; transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); backdrop-filter: blur(16px); cursor: pointer; display: flex; flex-direction: column; gap: 1rem; height: 100%; min-height: 200px; max-width: 450px; }
 .team-card:hover { transform: translateY(-5px); box-shadow: 0 15px 30px rgba(0, 0, 0, 0.4), 0 0 0 1px var(--accent); border-color: var(--accent); }
-.team-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--glass-border); padding-bottom: 0.8rem; }
-.team-name { font-size: 1.3rem; font-weight: 800; color: var(--accent); }
-.team-count { background: rgba(255, 255, 255, 0.05); padding: 0.3rem 0.6rem; border-radius: 12px; font-size: 0.85rem; color: var(--text-muted); }
+.team-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--glass-border); padding-bottom: 0.8rem; gap: 0.5rem; }
+.team-name { font-size: 1.1rem; font-weight: 800; color: var(--accent); display: flex; align-items: center; gap: 8px; }
+.team-flag-crest { width: 28px; height: 28px; object-fit: contain; border-radius: 6px; flex-shrink: 0; background: rgba(255,255,255,0.05); padding: 2px; border: 1px solid var(--glass-border); }
+.team-flag-fallback { font-size: 20px; flex-shrink: 0; }
+.team-count { background: rgba(255, 255, 255, 0.05); padding: 0.3rem 0.6rem; border-radius: 12px; font-size: 0.85rem; color: var(--text-muted); white-space: nowrap; flex-shrink: 0; }
 .team-numbers { color: var(--text-main); line-height: 1.5; font-size: 1rem; flex-grow: 1; overflow-y: auto; max-height: 80px; padding-right: 0.5rem; }
 .team-numbers::-webkit-scrollbar { width: 4px; }
 .team-numbers::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.1); border-radius: 10px; }
@@ -235,3 +237,465 @@ input:checked + .slider:before { transform: translateX(24px); }
     .modal-grid { grid-template-columns: repeat(4, 1fr); gap: 0.5rem; }
     .cromo-btn { padding: 0.6rem 0; font-size: 1rem; }
 }
+
+/* ========================================
+   OPCIÓN 2: TARJETAS COMPACTAS CON ESCUDOS
+   ======================================== */
+
+/* Estilos para la nueva sección de equipos con escudos */
+.teams-compact-section {
+    margin-bottom: 2rem;
+}
+
+.teams-compact-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+/* Tarjeta compacta individual */
+.team-compact-card {
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    border-radius: 16px;
+    padding: 1rem;
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    backdrop-filter: blur(16px);
+    cursor: pointer;
+}
+
+.team-compact-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3), 0 0 0 1px var(--accent);
+    border-color: var(--accent);
+}
+
+.team-compact-card:active {
+    transform: translateY(-1px);
+}
+
+/* Header con escudo y nombre */
+.team-compact-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 12px;
+}
+
+/* Escudo (imagen o fallback) */
+.team-crest {
+    width: 50px;
+    height: 50px;
+    border-radius: 8px;
+    object-fit: contain;
+    flex-shrink: 0;
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
+    background: rgba(255, 255, 255, 0.05);
+    padding: 4px;
+}
+
+.team-crest:hover {
+    transform: scale(1.08);
+    transition: transform 0.2s;
+}
+
+/* Fallback si no hay imagen (emoji o placeholder) */
+.team-crest-fallback {
+    width: 50px;
+    height: 50px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    flex-shrink: 0;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--glass-border);
+}
+
+/* Información del equipo (nombre y cantidad) */
+.team-compact-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.team-compact-name {
+    margin: 0;
+    font-weight: 600;
+    font-size: 14px;
+    color: var(--text-main);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.team-compact-count {
+    margin: 4px 0 0;
+    font-size: 12px;
+    color: var(--text-muted);
+    font-weight: 500;
+}
+
+/* Barra de progreso */
+.team-compact-progress {
+    background: rgba(255, 255, 255, 0.05);
+    height: 4px;
+    border-radius: 2px;
+    overflow: hidden;
+    border: 0.5px solid var(--glass-border);
+}
+
+.team-compact-progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent), var(--gradient-2));
+    transition: width 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+    border-radius: 2px;
+}
+
+/* Colores por equipo - Bordes y acentos (todos los equipos) */
+/* Helpers para generar el tinte del fondo del escudo */
+/* GRUPO A */
+.team-compact-card.mex { border-left: 3px solid #006847; }
+.team-compact-card.mex .team-crest, .team-compact-card.mex .team-crest-fallback { background: rgba(0, 104, 71, 0.12); }
+
+.team-compact-card.rsa { border-left: 3px solid #007A4D; }
+.team-compact-card.rsa .team-crest, .team-compact-card.rsa .team-crest-fallback { background: rgba(0, 122, 77, 0.12); }
+
+.team-compact-card.kor { border-left: 3px solid #cd2e3a; }
+.team-compact-card.kor .team-crest, .team-compact-card.kor .team-crest-fallback { background: rgba(205, 46, 58, 0.12); }
+
+.team-compact-card.cze { border-left: 3px solid #d7141a; }
+.team-compact-card.cze .team-crest, .team-compact-card.cze .team-crest-fallback { background: rgba(215, 20, 26, 0.12); }
+
+/* GRUPO B */
+.team-compact-card.can { border-left: 3px solid #ff0000; }
+.team-compact-card.can .team-crest, .team-compact-card.can .team-crest-fallback { background: rgba(255, 0, 0, 0.12); }
+
+.team-compact-card.bih { border-left: 3px solid #002395; }
+.team-compact-card.bih .team-crest, .team-compact-card.bih .team-crest-fallback { background: rgba(0, 35, 149, 0.12); }
+
+.team-compact-card.qat { border-left: 3px solid #8d1b3d; }
+.team-compact-card.qat .team-crest, .team-compact-card.qat .team-crest-fallback { background: rgba(141, 27, 61, 0.12); }
+
+.team-compact-card.sui { border-left: 3px solid #ff0000; }
+.team-compact-card.sui .team-crest, .team-compact-card.sui .team-crest-fallback { background: rgba(255, 0, 0, 0.12); }
+
+/* GRUPO C */
+.team-compact-card.bra { border-left: 3px solid #f8c200; }
+.team-compact-card.bra .team-crest, .team-compact-card.bra .team-crest-fallback { background: rgba(248, 194, 0, 0.12); }
+
+.team-compact-card.mar { border-left: 3px solid #c1272d; }
+.team-compact-card.mar .team-crest, .team-compact-card.mar .team-crest-fallback { background: rgba(193, 39, 45, 0.12); }
+
+.team-compact-card.hai { border-left: 3px solid #00209f; }
+.team-compact-card.hai .team-crest, .team-compact-card.hai .team-crest-fallback { background: rgba(0, 32, 159, 0.12); }
+
+.team-compact-card.sco { border-left: 3px solid #003399; }
+.team-compact-card.sco .team-crest, .team-compact-card.sco .team-crest-fallback { background: rgba(0, 51, 153, 0.12); }
+
+/* GRUPO D */
+.team-compact-card.usa { border-left: 3px solid #3c3b6e; }
+.team-compact-card.usa .team-crest, .team-compact-card.usa .team-crest-fallback { background: rgba(60, 59, 110, 0.12); }
+
+.team-compact-card.par { border-left: 3px solid #d52b1e; }
+.team-compact-card.par .team-crest, .team-compact-card.par .team-crest-fallback { background: rgba(213, 43, 30, 0.12); }
+
+.team-compact-card.aus { border-left: 3px solid #00843d; }
+.team-compact-card.aus .team-crest, .team-compact-card.aus .team-crest-fallback { background: rgba(0, 132, 61, 0.12); }
+
+.team-compact-card.tur { border-left: 3px solid #e30a17; }
+.team-compact-card.tur .team-crest, .team-compact-card.tur .team-crest-fallback { background: rgba(227, 10, 23, 0.12); }
+
+/* GRUPO E */
+.team-compact-card.ger { border-left: 3px solid #000000; }
+.team-compact-card.ger .team-crest, .team-compact-card.ger .team-crest-fallback { background: rgba(60, 60, 60, 0.15); }
+
+.team-compact-card.cuw { border-left: 3px solid #002b7f; }
+.team-compact-card.cuw .team-crest, .team-compact-card.cuw .team-crest-fallback { background: rgba(0, 43, 127, 0.12); }
+
+.team-compact-card.civ { border-left: 3px solid #f77f00; }
+.team-compact-card.civ .team-crest, .team-compact-card.civ .team-crest-fallback { background: rgba(247, 127, 0, 0.12); }
+
+.team-compact-card.ecu { border-left: 3px solid #ffd100; }
+.team-compact-card.ecu .team-crest, .team-compact-card.ecu .team-crest-fallback { background: rgba(255, 209, 0, 0.12); }
+
+/* GRUPO F */
+.team-compact-card.ned { border-left: 3px solid #ff6600; }
+.team-compact-card.ned .team-crest, .team-compact-card.ned .team-crest-fallback { background: rgba(255, 102, 0, 0.12); }
+
+.team-compact-card.jpn { border-left: 3px solid #bc002d; }
+.team-compact-card.jpn .team-crest, .team-compact-card.jpn .team-crest-fallback { background: rgba(188, 0, 45, 0.12); }
+
+.team-compact-card.swe { border-left: 3px solid #006aa7; }
+.team-compact-card.swe .team-crest, .team-compact-card.swe .team-crest-fallback { background: rgba(0, 106, 167, 0.12); }
+
+.team-compact-card.tun { border-left: 3px solid #e70013; }
+.team-compact-card.tun .team-crest, .team-compact-card.tun .team-crest-fallback { background: rgba(231, 0, 19, 0.12); }
+
+/* GRUPO G */
+.team-compact-card.bel { border-left: 3px solid #f50000; }
+.team-compact-card.bel .team-crest, .team-compact-card.bel .team-crest-fallback { background: rgba(245, 0, 0, 0.12); }
+
+.team-compact-card.egy { border-left: 3px solid #ce1126; }
+.team-compact-card.egy .team-crest, .team-compact-card.egy .team-crest-fallback { background: rgba(206, 17, 38, 0.12); }
+
+.team-compact-card.irn { border-left: 3px solid #239f40; }
+.team-compact-card.irn .team-crest, .team-compact-card.irn .team-crest-fallback { background: rgba(35, 159, 64, 0.12); }
+
+.team-compact-card.nzl { border-left: 3px solid #00247d; }
+.team-compact-card.nzl .team-crest, .team-compact-card.nzl .team-crest-fallback { background: rgba(0, 36, 125, 0.12); }
+
+/* GRUPO H */
+.team-compact-card.esp { border-left: 3px solid #c60b1e; }
+.team-compact-card.esp .team-crest, .team-compact-card.esp .team-crest-fallback { background: rgba(198, 11, 30, 0.12); }
+
+.team-compact-card.cpv { border-left: 3px solid #003893; }
+.team-compact-card.cpv .team-crest, .team-compact-card.cpv .team-crest-fallback { background: rgba(0, 56, 147, 0.12); }
+
+.team-compact-card.ksa { border-left: 3px solid #006c35; }
+.team-compact-card.ksa .team-crest, .team-compact-card.ksa .team-crest-fallback { background: rgba(0, 108, 53, 0.12); }
+
+.team-compact-card.uru { border-left: 3px solid #5cb8e8; }
+.team-compact-card.uru .team-crest, .team-compact-card.uru .team-crest-fallback { background: rgba(92, 184, 232, 0.12); }
+
+/* GRUPO I */
+.team-compact-card.fra { border-left: 3px solid #002395; }
+.team-compact-card.fra .team-crest, .team-compact-card.fra .team-crest-fallback { background: rgba(0, 35, 149, 0.12); }
+
+.team-compact-card.sen { border-left: 3px solid #00853f; }
+.team-compact-card.sen .team-crest, .team-compact-card.sen .team-crest-fallback { background: rgba(0, 133, 63, 0.12); }
+
+.team-compact-card.irq { border-left: 3px solid #ce1126; }
+.team-compact-card.irq .team-crest, .team-compact-card.irq .team-crest-fallback { background: rgba(206, 17, 38, 0.12); }
+
+.team-compact-card.nor { border-left: 3px solid #ef2b2d; }
+.team-compact-card.nor .team-crest, .team-compact-card.nor .team-crest-fallback { background: rgba(239, 43, 45, 0.12); }
+
+/* GRUPO J */
+.team-compact-card.arg { border-left: 3px solid #74acdf; }
+.team-compact-card.arg .team-crest, .team-compact-card.arg .team-crest-fallback { background: rgba(116, 172, 223, 0.12); }
+
+.team-compact-card.alg { border-left: 3px solid #006233; }
+.team-compact-card.alg .team-crest, .team-compact-card.alg .team-crest-fallback { background: rgba(0, 98, 51, 0.12); }
+
+.team-compact-card.aut { border-left: 3px solid #ed2939; }
+.team-compact-card.aut .team-crest, .team-compact-card.aut .team-crest-fallback { background: rgba(237, 41, 57, 0.12); }
+
+.team-compact-card.jor { border-left: 3px solid #007a3d; }
+.team-compact-card.jor .team-crest, .team-compact-card.jor .team-crest-fallback { background: rgba(0, 122, 61, 0.12); }
+
+/* GRUPO K */
+.team-compact-card.por { border-left: 3px solid #006600; }
+.team-compact-card.por .team-crest, .team-compact-card.por .team-crest-fallback { background: rgba(0, 102, 0, 0.12); }
+
+.team-compact-card.cod { border-left: 3px solid #007fff; }
+.team-compact-card.cod .team-crest, .team-compact-card.cod .team-crest-fallback { background: rgba(0, 127, 255, 0.12); }
+
+.team-compact-card.uzb { border-left: 3px solid #1eb53a; }
+.team-compact-card.uzb .team-crest, .team-compact-card.uzb .team-crest-fallback { background: rgba(30, 181, 58, 0.12); }
+
+.team-compact-card.col { border-left: 3px solid #fcd116; }
+.team-compact-card.col .team-crest, .team-compact-card.col .team-crest-fallback { background: rgba(252, 209, 22, 0.12); }
+
+/* GRUPO L */
+.team-compact-card.eng { border-left: 3px solid #cf142b; }
+.team-compact-card.eng .team-crest, .team-compact-card.eng .team-crest-fallback { background: rgba(207, 20, 43, 0.12); }
+
+.team-compact-card.cro { border-left: 3px solid #ff0000; }
+.team-compact-card.cro .team-crest, .team-compact-card.cro .team-crest-fallback { background: rgba(255, 0, 0, 0.12); }
+
+.team-compact-card.gha { border-left: 3px solid #006b3f; }
+.team-compact-card.gha .team-crest, .team-compact-card.gha .team-crest-fallback { background: rgba(0, 107, 63, 0.12); }
+
+.team-compact-card.pan { border-left: 3px solid #da121a; }
+.team-compact-card.pan .team-crest, .team-compact-card.pan .team-crest-fallback { background: rgba(218, 18, 26, 0.12); }
+
+/* ESPECIALES */
+.team-compact-card.fwc, .team-compact-card.fwc1, .team-compact-card.fwc2 { border-left: 3px solid #f8c200; }
+.team-compact-card.fwc .team-crest, .team-compact-card.fwc .team-crest-fallback,
+.team-compact-card.fwc1 .team-crest, .team-compact-card.fwc1 .team-crest-fallback,
+.team-compact-card.fwc2 .team-crest, .team-compact-card.fwc2 .team-crest-fallback { background: rgba(248, 194, 0, 0.12); }
+
+.team-compact-card.cc { border-left: 3px solid #a855f7; }
+.team-compact-card.cc .team-crest, .team-compact-card.cc .team-crest-fallback { background: rgba(168, 85, 247, 0.12); }
+
+/* =====================================================
+   BORDES DE COLOR PARA PESTAÑA ÁLBUM (.team-card)
+   Reutiliza los mismos colores nacionales en las tarjetas
+   de la vista de Faltantes y Repetidos
+   ===================================================== */
+.team-card.mex { border-left: 3px solid #006847; }
+.team-card.rsa { border-left: 3px solid #007A4D; }
+.team-card.kor { border-left: 3px solid #cd2e3a; }
+.team-card.cze { border-left: 3px solid #d7141a; }
+.team-card.can { border-left: 3px solid #ff0000; }
+.team-card.bih { border-left: 3px solid #002395; }
+.team-card.qat { border-left: 3px solid #8d1b3d; }
+.team-card.sui { border-left: 3px solid #ff0000; }
+.team-card.bra { border-left: 3px solid #f8c200; }
+.team-card.mar { border-left: 3px solid #c1272d; }
+.team-card.hai { border-left: 3px solid #00209f; }
+.team-card.sco { border-left: 3px solid #003399; }
+.team-card.usa { border-left: 3px solid #3c3b6e; }
+.team-card.par { border-left: 3px solid #d52b1e; }
+.team-card.aus { border-left: 3px solid #00843d; }
+.team-card.tur { border-left: 3px solid #e30a17; }
+.team-card.ger { border-left: 3px solid #555; }
+.team-card.cuw { border-left: 3px solid #002b7f; }
+.team-card.civ { border-left: 3px solid #f77f00; }
+.team-card.ecu { border-left: 3px solid #ffd100; }
+.team-card.ned { border-left: 3px solid #ff6600; }
+.team-card.jpn { border-left: 3px solid #bc002d; }
+.team-card.swe { border-left: 3px solid #006aa7; }
+.team-card.tun { border-left: 3px solid #e70013; }
+.team-card.bel { border-left: 3px solid #f50000; }
+.team-card.egy { border-left: 3px solid #ce1126; }
+.team-card.irn { border-left: 3px solid #239f40; }
+.team-card.nzl { border-left: 3px solid #00247d; }
+.team-card.esp { border-left: 3px solid #c60b1e; }
+.team-card.cpv { border-left: 3px solid #003893; }
+.team-card.ksa { border-left: 3px solid #006c35; }
+.team-card.uru { border-left: 3px solid #5cb8e8; }
+.team-card.fra { border-left: 3px solid #002395; }
+.team-card.sen { border-left: 3px solid #00853f; }
+.team-card.irq { border-left: 3px solid #ce1126; }
+.team-card.nor { border-left: 3px solid #ef2b2d; }
+.team-card.arg { border-left: 3px solid #74acdf; }
+.team-card.alg { border-left: 3px solid #006233; }
+.team-card.aut { border-left: 3px solid #ed2939; }
+.team-card.jor { border-left: 3px solid #007a3d; }
+.team-card.por { border-left: 3px solid #006600; }
+.team-card.cod { border-left: 3px solid #007fff; }
+.team-card.uzb { border-left: 3px solid #1eb53a; }
+.team-card.col { border-left: 3px solid #fcd116; }
+.team-card.eng { border-left: 3px solid #cf142b; }
+.team-card.cro { border-left: 3px solid #ff0000; }
+.team-card.gha { border-left: 3px solid #006b3f; }
+.team-card.pan { border-left: 3px solid #da121a; }
+.team-card.fwc, .team-card.fwc1, .team-card.fwc2 { border-left: 3px solid #f8c200; }
+.team-card.cc { border-left: 3px solid #a855f7; }
+
+
+/* Estados especiales */
+.team-compact-card.completed .team-compact-progress-fill {
+    background: linear-gradient(90deg, #10b981, #059669);
+}
+
+.team-compact-card.empty .team-crest {
+    opacity: 0.5;
+    filter: grayscale(0.8);
+}
+
+/* Responsive para móvil */
+@media (max-width: 768px) {
+    .teams-compact-grid {
+        grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+        gap: 0.75rem;
+    }
+    
+    .team-compact-card {
+        padding: 0.8rem;
+    }
+    
+    .team-crest {
+        width: 45px;
+        height: 45px;
+    }
+    
+    .team-compact-name {
+        font-size: 13px;
+    }
+    
+    .team-compact-count {
+        font-size: 11px;
+    }
+}
+
+/* Animación de entrada */
+@keyframes slideInCard {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.team-compact-card {
+    animation: slideInCard 0.4s ease-out;
+}
+
+/* Variación de animación por índice (stagger effect) */
+.team-compact-card:nth-child(1) { animation-delay: 0.05s; }
+.team-compact-card:nth-child(2) { animation-delay: 0.1s; }
+.team-compact-card:nth-child(3) { animation-delay: 0.15s; }
+.team-compact-card:nth-child(4) { animation-delay: 0.2s; }
+.team-compact-card:nth-child(n+5) { animation-delay: 0.25s; }
+
+/* ========================================
+   DISEÑO PREMIUM PARA CABECERA DE MODAL
+   ======================================== */
+
+.modal-title-container {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 1.5rem;
+    padding-right: 2.5rem; /* Evitar solapar con el botón de cerrar × */
+}
+
+.modal-team-crest {
+    width: 50px;
+    height: 50px;
+    border-radius: 8px;
+    object-fit: contain;
+    flex-shrink: 0;
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
+    background: rgba(255, 255, 255, 0.05);
+    padding: 4px;
+    border: 1px solid var(--glass-border);
+}
+
+.modal-team-crest-fallback {
+    width: 50px;
+    height: 50px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 28px;
+    flex-shrink: 0;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--glass-border);
+}
+
+.modal-team-name {
+    font-size: 1.7rem;
+    font-weight: 800;
+    color: var(--text-main);
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+}
+
+@media (max-width: 768px) {
+    .modal-title-container {
+        gap: 12px;
+    }
+    
+    .modal-team-name {
+        font-size: 1.4rem;
+    }
+    
+    .modal-team-crest, .modal-team-crest-fallback {
+        width: 40px;
+        height: 40px;
+    }
+    
+    .modal-team-crest-fallback {
+        font-size: 22px;
+    }
+}
+
+
