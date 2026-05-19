@@ -104,4 +104,4 @@ Proyecto_Panini_2026/
 ---
 
 ## 🤝 Contribuir
-¡Las contribuciones son bienvenidas! Si tienes ideas para mejorar la UI, añadir soporte para exportar las listas de repetidos a WhatsApp, u optimizar las queries, no dudes en hacer un *fork* del repositorio y enviar tu *Pull Request*.
+¡Las contribuciones son bienvenidas! Todavía sigo en fase de implementar algunas cosas nuevas pero, si tienes ideas para mejorar la UI, añadir soporte para exportar las listas de repetidos a WhatsApp, u optimizar las queries, no dudes en hacer un *fork* del repositorio y enviar tu *Pull Request*.
