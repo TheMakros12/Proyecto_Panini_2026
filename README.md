@@ -27,64 +27,47 @@ Este proyecto está construido combinando un backend sólido con un frontend din
 
 ---
 
-## 🚀 Instalación y Configuración
+## 🚀 Instalación Rápida
 
-Sigue estos pasos para levantar tu propio servidor y bot en cuestión de minutos.
+*(Para instrucciones detalladas de despliegue, revisa la carpeta `docs/`)*
 
-### 1. Clonar el repositorio
+### 1. Clonar e Instalar
 ```bash
 git clone https://github.com/TheMakros12/Proyecto_Panini_2026.git
 cd Proyecto_Panini_2026
-```
-
-### 2. Instalar dependencias
-Asegúrate de tener Python instalado y ejecuta:
-```bash
 pip install -r requirements.txt
 ```
 
-### 3. Configurar el Bot de Telegram
-Crea un bot en Telegram usando [BotFather](https://t.me/botfather) y obtén tu **Token**. Luego, configúralo como variable de entorno:
-
-**En Windows (PowerShell):**
-```powershell
-$env:TELEGRAM_TOKEN="tu_token_aqui"
-```
-
-**En Linux / Mac:**
+### 2. Configurar el Entorno
+Copia la plantilla de variables de entorno:
 ```bash
-export TELEGRAM_TOKEN="tu_token_aqui"
+cp .env.example .env
 ```
+Edita `.env` para añadir tu `TELEGRAM_TOKEN` (obtenido desde BotFather).
 
-### 4. Iniciar los servicios
-Necesitarás dos terminales para correr el dashboard web y el bot simultáneamente.
+### 3. Iniciar la Aplicación
+El proyecto tiene un único punto de entrada unificado (`main.py`):
+```bash
+# Ejecutar ambos (Web + Bot):
+python main.py --mode both
 
-* **Terminal 1 (Dashboard Web):**
-  ```bash
-  python app.py
-  ```
-  *La web estará disponible en `http://localhost:5000` o en la IP de tu PC en la red local.*
+# Ejecutar solo Web:
+python main.py --mode web
 
-* **Terminal 2 (Bot de Telegram):**
-  ```bash
-  python bot.py
-  ```
+# Ejecutar solo Bot:
+python main.py --mode bot
+```
+*La web estará disponible en `http://localhost:5000` o en la IP de tu PC en la red local.*
 
 ---
 
-## 🎮 ¿Cómo se usa?
+## 📚 Documentación Completa
 
-### 🌐 Vía Web
-Accede a la IP de tu servidor desde el navegador. Verás tu progreso general y un desglose por grupos (A, B, C... FWC, CC, etc.). Haz clic sobre el número de los cromos para marcarlos como "conseguidos" o "repetidos" visualmente.
-
-### 🤖 Vía Bot de Telegram
-Inicia un chat con tu bot y utiliza los siguientes comandos:
-* `/start` - Inicializa tu colección y muestra el menú de botones.
-* `/tengo [ID]` - Registra cromos que acabas de conseguir (Ej: `/tengo ESP 1, ARG 5`).
-* `/quitar [ID]` - Elimina cromos añadidos por error (Ej: `/quitar ESP 1`).
-* `/falta` - Obtén una lista compacta de los cromos que necesitas para completar tu álbum.
-* `/repetidos` - Mira rápidamente qué cromos tienes disponibles para intercambiar.
-* `/estadisticas` - Visualiza un resumen instantáneo de tu progreso y % completado.
+Toda la documentación técnica se ha movido a la carpeta `docs/` para mantener el repositorio limpio:
+- 📖 [**Guía de Instalación Detallada**](docs/INSTALL.md)
+- ⚙️ [**API Endpoints**](docs/API.md)
+- 🤖 [**Comandos del Bot de Telegram**](docs/BOT_COMMANDS.md)
+- 🚀 [**Guía de Despliegue (Producción)**](docs/DEPLOYMENT.md)
 
 ---
 
@@ -92,13 +75,19 @@ Inicia un chat con tu bot y utiliza los siguientes comandos:
 
 ```text
 Proyecto_Panini_2026/
-├── app.py              # Servidor principal Web (Flask) y API REST
-├── bot.py              # Lógica asíncrona y comandos del Bot de Telegram
-├── database.py         # Inicialización del álbum completo y gestor SQLite
-├── coleccion.db        # Base de datos (se genera automáticamente)
-├── requirements.txt    # Dependencias del proyecto
-├── static/             # Archivos CSS, JS e imágenes del frontend
-└── templates/          # Plantillas HTML principales (index.html)
+├── src/                # Código fuente principal
+│   ├── app.py          # Aplicación Web Flask y API
+│   ├── bot.py          # Bot de Telegram
+│   └── database.py     # Gestor de base de datos SQLite
+├── docs/               # Documentación técnica
+├── static/             # Recursos públicos (CSS, JS, imágenes)
+├── templates/          # Plantillas HTML
+├── tests/              # Pruebas unitarias
+├── instance/           # Base de datos local (creada automáticamente)
+├── config.py           # Configuraciones centralizadas
+├── main.py             # Punto de entrada unificado
+├── .env.example        # Plantilla de variables de entorno
+└── requirements.txt    # Dependencias
 ```
 
 ---

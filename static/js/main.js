@@ -410,7 +410,7 @@ function renderFaltantesFromAlbum() {
                 const card = document.createElement('div');
                 const teamInfo = TEAM_COLORS[equipo] || { flag: '⚽' };
                 const fullName = TEAM_FULL_NAMES[equipo] || equipo;
-                const crestPath = `/assets/crests/${equipo.toLowerCase()}.png`;
+                const crestPath = `/static/images/crests/${equipo.toLowerCase()}.png`;
                 card.className = `team-card ${equipo.toLowerCase()}`;
                 card.onclick = () => openModal(equipo);
                 
@@ -476,7 +476,7 @@ function renderRepetidosFromAlbum() {
                 
                 const teamInfo = TEAM_COLORS[equipo] || { flag: '⚽' };
                 const fullName = TEAM_FULL_NAMES[equipo] || equipo;
-                const crestPath = `/assets/crests/${equipo.toLowerCase()}.png`;
+                const crestPath = `/static/images/crests/${equipo.toLowerCase()}.png`;
                 
                 let total = cromos.length;
                 let faltantes = cromos.filter(c => c.cantidad === 0).length;
@@ -526,7 +526,7 @@ function openModal(equipo) {
     const grid = document.getElementById('modal-grid');
     
     // Ruta del escudo (en minúsculas para compatibilidad en Linux/Railway)
-    const crestPath = `/assets/crests/${equipo.toLowerCase()}.png`;
+    const crestPath = `/static/images/crests/${equipo.toLowerCase()}.png`;
     const teamInfo = TEAM_COLORS[equipo] || { flag: '⚽' };
     const fullName = TEAM_FULL_NAMES[equipo] || equipo;
 
@@ -959,7 +959,7 @@ function createTeamCompactCard(equipo, conseguidos, total, porcentaje) {
     card.onclick = () => openGroupModal(equipo); // Abre el modal del equipo
 
     // Ruta del escudo (en minúsculas para compatibilidad en Linux/Railway)
-    const crestPath = `/assets/crests/${equipo.toLowerCase()}.png`;
+    const crestPath = `/static/images/crests/${equipo.toLowerCase()}.png`;
 
     card.innerHTML = `
         <div class="team-compact-header">

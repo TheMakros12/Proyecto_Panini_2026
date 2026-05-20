@@ -1,8 +1,8 @@
 const CACHE_NAME = 'panini-v1';
 const urlsToCache = [
     '/',
-    '/static/style.css',
-    '/static/script.js',
+    '/static/css/style.css',
+    '/static/js/main.js',
     '/static/manifest.json'
 ];
 
