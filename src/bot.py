@@ -2,8 +2,8 @@ import os
 import logging
 from telegram import Update, InlineKeyboardMarkup, InlineKeyboardButton
 from telegram.ext import ApplicationBuilder, CommandHandler, CallbackQueryHandler, ContextTypes
+from config import Config
 from src import database
-from config import get_config
 
 # Configurar logging
 logging.basicConfig(
@@ -11,10 +11,8 @@ logging.basicConfig(
     level=logging.INFO
 )
 
-cfg = get_config()
-
 def format_ranges(numeros):
-    """Formatear números en rangos"""
+    """Formatear rangos de números (ej: [1,2,3,5] -> '1-3, 5')"""
     if not numeros: 
         return ""
     numeros.sort()
@@ -31,14 +29,17 @@ def format_ranges(numeros):
     return ", ".join(rangos)
 
 def get_user_id(update: Update):
-    """Obtener ID del usuario"""
+    """Obtener ID del usuario de Telegram"""
     user = update.effective_user
-    # Por defecto usa MarcosDB12, descomenta la siguiente línea para soporte multiusuario
+    # Mapeo manual para mantener tu cuenta principal
+    # Si eres tú (tu usuario de Telegram), te asignará a 'MarcosDB12'
+    # Como no sé tu username, simplemente usamos Config.DEFAULT_USER por defecto
+    # Si quieres que tus amigos tengan su propia DB, descomenta la línea de abajo.
     # return user.username or user.first_name
-    return cfg.DEFAULT_USER
+    return Config.DEFAULT_USER
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Comando /start - Inicializar"""
+    """Comando /start - Inicializar colección"""
     user_id = get_user_id(update)
     database.inicializar_album_completo(user_id)
     
@@ -63,7 +64,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     )
 
 async def button_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Manejador de botones interactivos"""
+    """Manejar pulsaciones de botones"""
     query = update.callback_query
     await query.answer()
     
@@ -79,7 +80,7 @@ async def button_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await web_logic(query.message.reply_text)
 
 async def estadisticas(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Comando /estadisticas"""
+    """Comando /estadisticas - Ver estadísticas"""
     user_id = get_user_id(update)
     await estadisticas_logic(user_id, update.message.reply_text)
 
@@ -98,7 +99,7 @@ async def estadisticas_logic(user_id, reply_func):
     await reply_func(texto, parse_mode='Markdown')
 
 async def tengo(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Comando /tengo - Registrar cromos"""
+    """Comando /tengo - Registrar cromos obtenidos"""
     args = context.args
     user_id = get_user_id(update)
     
@@ -117,7 +118,7 @@ async def tengo(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(f"✅ Registrados en {user_id}: {', '.join(registrados)}")
 
 async def quitar(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Comando /quitar - Eliminar cromos"""
+    """Comando /quitar - Eliminar cromos por error"""
     args = context.args
     user_id = get_user_id(update)
     
@@ -136,12 +137,12 @@ async def quitar(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(f"🗑️ Borrados de {user_id}: {', '.join(borrados)}")
 
 async def falta(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Comando /falta - Ver faltantes"""
+    """Comando /falta - Ver cromos faltantes"""
     user_id = get_user_id(update)
     await falta_logic(user_id, update.message.reply_text)
 
 async def falta_logic(user_id, reply_func):
-    """Lógica para mostrar faltantes"""
+    """Lógica para mostrar cromos faltantes"""
     faltantes = database.get_faltantes(user_id)
     if not faltantes:
         await reply_func("¡Felicidades! No tienes cromos registrados como faltantes.")
@@ -165,12 +166,12 @@ async def falta_logic(user_id, reply_func):
     await reply_func(f"❌ *Te faltan {len(faltantes)} cromos:*\n\n{texto}", parse_mode='Markdown')
 
 async def repetidos(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Comando /repetidos - Ver repetidos"""
+    """Comando /repetidos - Ver cromos repetidos"""
     user_id = get_user_id(update)
     await repetidos_logic(user_id, update.message.reply_text)
 
 async def repetidos_logic(user_id, reply_func):
-    """Lógica para mostrar repetidos"""
+    """Lógica para mostrar cromos repetidos"""
     reps = database.get_repetidos(user_id)
     if not reps:
         await reply_func("No tienes cromos repetidos en este momento.")
@@ -196,27 +197,32 @@ async def repetidos_logic(user_id, reply_func):
     await reply_func(f"🔄 *Cromos repetidos ({len(reps)}):*\n\n{texto}", parse_mode='Markdown')
 
 async def web(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Comando /web - Enlace al dashboard"""
+    """Comando /web - Obtener enlace del dashboard"""
     await web_logic(update.message.reply_text)
 
 async def web_logic(reply_func):
     """Lógica para mostrar enlace web"""
-    url = cfg.WEB_URL
+    url = Config.WEB_URL
     await reply_func(
         f"🌐 Puedes gestionar tu colección visualmente en el Dashboard Web:\n\n"
         f"👉 {url}\n\n"
-        f"*(Asegúrate de que la aplicación web, app.py, esté corriendo. Si estás en el móvil con la misma WiFi, sustituye localhost por la IP de tu PC)*",
+        f"*(Asegúrate de que la aplicación web, main.py, esté corriendo. Si estás en el móvil con la misma WiFi, sustituye localhost por la IP de tu PC)*",
         parse_mode='Markdown'
     )
 
-def get_bot_application():
-    """Obtener la aplicación del bot configurada"""
-    token = cfg.TELEGRAM_TOKEN
+def main():
+    """Iniciar el bot de Telegram"""
+    database.init_db()
+
+    token = Config.TELEGRAM_TOKEN
     if not token:
-        raise ValueError("ERROR: No se encontró la variable de entorno TELEGRAM_TOKEN.")
+        print("ERROR: No se encontró TELEGRAM_TOKEN en las variables de entorno.")
+        print("Asegúrate de tener un archivo .env con: TELEGRAM_TOKEN=tu_token")
+        return
 
     application = ApplicationBuilder().token(token).build()
 
+    # Registrar comandos
     application.add_handler(CommandHandler("start", start))
     application.add_handler(CommandHandler("tengo", tengo))
     application.add_handler(CommandHandler("quitar", quitar))
@@ -228,13 +234,7 @@ def get_bot_application():
     # Manejador para los botones interactivos
     application.add_handler(CallbackQueryHandler(button_callback))
 
-    return application
-
-def main():
-    """Punto de entrada principal del bot"""
-    database.init_db()
-    application = get_bot_application()
-    print("Bot iniciado. Presiona Ctrl+C para detener.")
+    print("🤖 Bot de Telegram iniciado. Presiona Ctrl+C para detener.")
     application.run_polling()
 
 if __name__ == '__main__':

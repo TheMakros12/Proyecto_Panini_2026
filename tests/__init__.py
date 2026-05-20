@@ -1,3 +1,1 @@
-"""
-Tests para Proyecto Panini 2026
-"""
+"""Tests para Panini World Cup 2026 Tracker"""

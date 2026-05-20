@@ -1,11 +1,10 @@
-"""
-Proyecto Panini 2026 - Módulo principal
-Contiene la aplicación Flask y el bot de Telegram
-"""
+"""Panini World Cup 2026 Tracker - Main module"""
 
 from src.app import app
-from src.bot import get_bot_application
+from src import bot
+from src import database
 
 __version__ = '1.0.0'
 __author__ = 'TheMakros12'
-__all__ = ['app', 'get_bot_application']
+
+__all__ = ['app', 'bot', 'database']

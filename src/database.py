@@ -1,24 +1,19 @@
 import sqlite3
 import os
 import re
-from config import get_config
+from config import Config
 
-def get_db_path():
-    """Obtener la ruta de la base de datos"""
-    config = get_config()
-    db_path = config.DATABASE_PATH
-    
-    # Crear directorio instance si no existe
-    os.makedirs(os.path.dirname(db_path), exist_ok=True)
-    
-    return db_path
+# Crear carpeta instance si no existe
+os.makedirs('instance', exist_ok=True)
+
+DB_PATH = Config.DATABASE_PATH
 
 def get_connection():
-    """Crear conexión a la base de datos"""
-    return sqlite3.connect(get_db_path())
+    """Obtener conexión a la base de datos"""
+    return sqlite3.connect(DB_PATH)
 
 def normalize_cromo_id(id_cromo):
-    """Normalizar el formato del ID del cromo"""
+    """Normalizar ID de cromo (ej: 'esp 1' -> 'ESP 1')"""
     id_cromo = id_cromo.strip().upper()
     # Capturar equipo y número, permitiendo que el número sea 0 o 00
     match = re.match(r'^([A-Z]+)[-\s]*0*(\d+)$', id_cromo)
@@ -168,7 +163,7 @@ def get_all_cromos(user_id):
     return rows
 
 def get_stats(user_id):
-    """Obtener estadísticas de un usuario"""
+    """Obtener estadísticas del usuario"""
     inicializar_album_completo(user_id)
     conn = get_connection()
     cursor = conn.cursor()
@@ -183,7 +178,7 @@ def get_stats(user_id):
     return total, faltantes, repetidos
 
 def get_historial(user_id, limit=10):
-    """Obtener historial de cambios"""
+    """Obtener historial de acciones"""
     conn = get_connection()
     cursor = conn.cursor()
     cursor.execute('SELECT cromo_id, accion, fecha FROM historial WHERE user_id = ? ORDER BY fecha DESC LIMIT ?', (user_id, limit))
@@ -192,7 +187,7 @@ def get_historial(user_id, limit=10):
     return rows
 
 def repair_user_collection(user_id):
-    """Reparar colección de un usuario (añade cromos faltantes)"""
+    """Reparar colección de usuario (añadir cromos faltantes)"""
     conn = get_connection()
     cursor = conn.cursor()
     
@@ -224,7 +219,7 @@ def repair_user_collection(user_id):
     conn.close()
 
 def update_cromo_name(user_id, id_cromo, nombre):
-    """Actualizar el nombre de un cromo"""
+    """Actualizar nombre de un cromo"""
     conn = get_connection()
     cursor = conn.cursor()
     id_cromo = normalize_cromo_id(id_cromo)
@@ -237,4 +232,4 @@ def update_cromo_name(user_id, id_cromo, nombre):
 if __name__ == '__main__':
     print("Inicializando base de datos...")
     init_db()
-    print("Base de datos inicializada en:", get_db_path())
+    print(f"Base de datos inicializada en: {DB_PATH}")

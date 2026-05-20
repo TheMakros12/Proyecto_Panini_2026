@@ -1,14 +1,13 @@
 import os
 import sqlite3
 from flask import Flask, render_template, jsonify, request, send_from_directory
+from flask_cors import CORS
+from config import Config
 from src import database
-from config import get_config
 
-app = Flask(__name__, template_folder='../templates', static_folder='../static')
-
-# Cargar configuración
-cfg = get_config()
-app.config.from_object(cfg)
+app = Flask(__name__, template_folder='templates', static_folder='static')
+app.config.from_object(Config)
+CORS(app)
 
 @app.route('/')
 def index():
@@ -20,7 +19,7 @@ def send_assets(path):
 
 @app.route('/api/stats')
 def stats():
-    user_id = request.args.get('user_id', app.config['DEFAULT_USER'])
+    user_id = request.args.get('user_id', Config.DEFAULT_USER)
     total, faltantes, repetidos = database.get_stats(user_id)
     
     return jsonify({
@@ -33,7 +32,7 @@ def stats():
 
 @app.route('/api/faltantes')
 def faltantes():
-    user_id = request.args.get('user_id', app.config['DEFAULT_USER'])
+    user_id = request.args.get('user_id', Config.DEFAULT_USER)
     rows = database.get_faltantes(user_id)
     data = {}
     for equipo, numero, nombre in rows:
@@ -44,7 +43,7 @@ def faltantes():
 
 @app.route('/api/repetidos')
 def repetidos():
-    user_id = request.args.get('user_id', app.config['DEFAULT_USER'])
+    user_id = request.args.get('user_id', Config.DEFAULT_USER)
     rows = database.get_repetidos(user_id)
     data = {}
     for equipo, numero, cantidad in rows:
@@ -55,7 +54,7 @@ def repetidos():
 
 @app.route('/api/album')
 def album():
-    user_id = request.args.get('user_id', app.config['DEFAULT_USER'])
+    user_id = request.args.get('user_id', Config.DEFAULT_USER)
     rows = database.get_all_cromos(user_id)
     
     data_by_equipo = {}
@@ -96,7 +95,7 @@ def album():
 def tengo():
     req = request.json
     ids = req.get('ids')
-    user_id = req.get('user_id', app.config['DEFAULT_USER'])
+    user_id = req.get('user_id', Config.DEFAULT_USER)
     
     if not ids:
         return jsonify({'error': 'No IDs provided'}), 400
@@ -111,7 +110,7 @@ def tengo():
 def quitar():
     req = request.json
     ids = req.get('ids')
-    user_id = req.get('user_id', app.config['DEFAULT_USER'])
+    user_id = req.get('user_id', Config.DEFAULT_USER)
     
     if not ids:
         return jsonify({'error': 'No IDs provided'}), 400
@@ -124,7 +123,7 @@ def quitar():
 
 @app.route('/api/historial')
 def historial():
-    user_id = request.args.get('user_id', app.config['DEFAULT_USER'])
+    user_id = request.args.get('user_id', Config.DEFAULT_USER)
     rows = database.get_historial(user_id)
     return jsonify([{'cromo_id': r[0], 'accion': r[1], 'fecha': r[2]} for r in rows])
 
@@ -142,7 +141,7 @@ def update_name():
     req = request.json
     id_cromo = req.get('id')
     nombre = req.get('nombre')
-    user_id = req.get('user_id', app.config['DEFAULT_USER'])
+    user_id = req.get('user_id', Config.DEFAULT_USER)
     
     if not id_cromo:
         return jsonify({'error': 'No ID provided'}), 400
@@ -151,6 +150,4 @@ def update_name():
     return jsonify({'success': True})
 
 if __name__ == '__main__':
-    # Inicializar BD
-    database.init_db()
-    app.run(debug=app.config['DEBUG'], host='0.0.0.0', port=5000)
+    app.run(debug=True, host='0.0.0.0', port=5000)

@@ -10,31 +10,22 @@ class Config:
     DATABASE_PATH = os.getenv('DATABASE_PATH', 'instance/coleccion.db')
     DEFAULT_USER = 'MarcosDB12'
     DEBUG = False
-    TESTING = False
+    FLASK_ENV = 'development'
+    TEMPLATES_FOLDER = 'templates'
+    STATIC_FOLDER = 'static'
 
 class DevelopmentConfig(Config):
-    """Configuración para desarrollo"""
+    """Configuración de desarrollo"""
     DEBUG = True
-    TESTING = False
-
-class TestingConfig(Config):
-    """Configuración para testing"""
-    DEBUG = True
-    TESTING = True
-    DATABASE_PATH = 'instance/test_coleccion.db'
+    FLASK_ENV = 'development'
 
 class ProductionConfig(Config):
-    """Configuración para producción"""
+    """Configuración de producción"""
     DEBUG = False
-    TESTING = False
+    FLASK_ENV = 'production'
 
 config = {
     'development': DevelopmentConfig,
-    'testing': TestingConfig,
     'production': ProductionConfig,
     'default': DevelopmentConfig
 }
-
-def get_config(env='default'):
-    """Obtener configuración según el entorno"""
-    return config.get(env, config['default'])
