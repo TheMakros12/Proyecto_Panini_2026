@@ -12,6 +12,7 @@ venv/
 ENV/
 env.bak/
 venv.bak/
+.python/
 
 # SQLite Database
 *.db
@@ -23,3 +24,7 @@ coleccion.db
 .idea/
 *.swp
 *.swo
+
+# OS
+.DS_Store
+Thumbs.db
