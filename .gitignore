@@ -19,12 +19,27 @@ venv.bak/
 coleccion.db
 *.sqlite3
 
+# Instance folder (local data)
+instance/
+
 # IDEs and Editors
 .vscode/
 .idea/
 *.swp
 *.swo
+*.sublime-project
+*.sublime-workspace
 
 # OS
 .DS_Store
 Thumbs.db
+
+# Test coverage
+.coverage
+htmlcov/
+.pytest_cache/
+
+# Distribution
+build/
+dist/
+*.egg-info/
