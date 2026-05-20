@@ -1,5 +1,71 @@
 let fullAlbumData = null;
 let activeUser = localStorage.getItem('panini_user') || 'MarcosDB12';
+let currentOpenTeam = null;
+
+// ========================================
+// CONFIGURACIÓN DE CACHÉ & HELPERS
+// ========================================
+const DATA_CACHE_DURATION = 5 * 60 * 1000; // 5 minutos
+
+function getCachedData(key) {
+    const cached = localStorage.getItem(`panini_${key}`);
+    if (!cached) return null;
+    try {
+        const { data, timestamp } = JSON.parse(cached);
+        if (Date.now() - timestamp > DATA_CACHE_DURATION) {
+            localStorage.removeItem(`panini_${key}`);
+            return null;
+        }
+        return data;
+    } catch (e) {
+        localStorage.removeItem(`panini_${key}`);
+        return null;
+    }
+}
+
+function setCachedData(key, data) {
+    localStorage.setItem(`panini_${key}`, JSON.stringify({
+        data,
+        timestamp: Date.now()
+    }));
+}
+
+function clearUserCache(user) {
+    localStorage.removeItem(`panini_stats_${user}`);
+    localStorage.removeItem(`panini_album_${user}`);
+    localStorage.removeItem(`panini_historial_${user}`);
+}
+
+// ========================================
+// DEBOUNCE PARA CAMBIOS DE USUARIO
+// ========================================
+let debounceTimer = null;
+function debounce(fn, delay = 300) {
+    return function(...args) {
+        clearTimeout(debounceTimer);
+        debounceTimer = setTimeout(() => fn(...args), delay);
+    };
+}
+
+const changeUserDebounced = debounce(() => {
+    activeUser = document.getElementById('user-select').value;
+    localStorage.setItem('panini_user', activeUser);
+    loadAllData();
+}, 300);
+
+// ========================================
+// PRECARGA DE BANDERAS
+// ========================================
+function preloadFlags() {
+    const mainTeams = ['ar', 'es', 'fr', 'br', 'de', 'gb-eng', 'it', 'nl', 'pt', 'us'];
+    mainTeams.forEach(code => {
+        const link = document.createElement('link');
+        link.rel = 'preload';
+        link.as = 'image';
+        link.href = `https://flagcdn.com/24x18/${code}.png`;
+        document.head.appendChild(link);
+    });
+}
 
 const FLAGS_CODES = {
     "MEX": "mx", "RSA": "za", "KOR": "kr", "CZE": "cz",
@@ -85,6 +151,9 @@ function getTeamName(equipo) {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
+    // Precargar banderas
+    preloadFlags();
+
     // PWA Service Worker
     if ('serviceWorker' in navigator) {
         navigator.serviceWorker.register('/static/sw.js').catch(err => console.log('SW ref', err));
@@ -110,6 +179,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (data.success) {
                 input.value = '';
                 showToast(`¡Guardados: ${data.registrados.join(', ')}!`);
+                clearUserCache(activeUser);
                 loadAllData();
             }
         } catch (error) {
@@ -148,6 +218,7 @@ function createNewUser() {
     if (newName && newName.trim()) {
         activeUser = newName.trim();
         localStorage.setItem('panini_user', activeUser);
+        clearUserCache(activeUser);
         loadUsers();
         loadAllData();
     }
@@ -157,14 +228,21 @@ function loadAllData() {
     loadStats();
     loadAlbum();
     loadHistory();
-    renderTeamsCompactCards();
 }
 
-async function loadHistory() {
-    const res = await fetch(`/api/historial?user_id=${encodeURIComponent(activeUser)}`);
-    const history = await res.json();
-    
+function showHistorySkeleton() {
     const list = document.getElementById('history-list');
+    if (!list) return;
+    list.innerHTML = `
+        <li class="history-item"><span class="skeleton-text" style="width: 100px;"></span> <span class="skeleton-text" style="width: 40px;"></span></li>
+        <li class="history-item"><span class="skeleton-text" style="width: 120px;"></span> <span class="skeleton-text" style="width: 40px;"></span></li>
+        <li class="history-item"><span class="skeleton-text" style="width: 80px;"></span> <span class="skeleton-text" style="width: 40px;"></span></li>
+    `;
+}
+
+function updateHistoryUI(history) {
+    const list = document.getElementById('history-list');
+    if (!list) return;
     list.innerHTML = '';
     
     if (history.length === 0) {
@@ -179,6 +257,26 @@ async function loadHistory() {
         li.innerHTML = `<span>${item.cromo_id} <small>(${item.accion})</small></span> <span class="hist-time">${time}</span>`;
         list.appendChild(li);
     });
+}
+
+async function loadHistory() {
+    const cacheKey = `historial_${activeUser}`;
+    const cached = getCachedData(cacheKey);
+    if (cached) {
+        updateHistoryUI(cached);
+        return;
+    }
+    
+    showHistorySkeleton();
+    
+    try {
+        const res = await fetch(`/api/historial?user_id=${encodeURIComponent(activeUser)}`);
+        const history = await res.json();
+        setCachedData(cacheKey, history);
+        updateHistoryUI(history);
+    } catch (error) {
+        console.error('Error loading history:', error);
+    }
 }
 
 function formatRanges(numeros) {
@@ -204,26 +302,91 @@ function formatRanges(numeros) {
     return rangos.join(', ');
 }
 
-async function loadStats() {
-    const res = await fetch(`/api/stats?user_id=${encodeURIComponent(activeUser)}`);
-    const data = await res.json();
-    
+function showStatsSkeleton() {
+    document.getElementById('val-conseguidos').innerHTML = '<span class="skeleton-text" style="width: 40px; height: 2rem;"></span>';
+    document.getElementById('val-faltantes').innerHTML = '<span class="skeleton-text" style="width: 40px; height: 2rem;"></span>';
+    document.getElementById('val-repetidos').innerHTML = '<span class="skeleton-text" style="width: 40px; height: 2rem;"></span>';
+    document.getElementById('val-porcentaje').innerHTML = '<span class="skeleton-text" style="width: 50px; height: 1.5rem;"></span>';
+    const circle = document.getElementById('progress-circle');
+    if (circle) {
+        circle.style.background = 'rgba(255, 255, 255, 0.03)';
+    }
+}
+
+function updateStatsUI(data) {
     document.getElementById('val-conseguidos').innerText = data.conseguidos;
     document.getElementById('val-faltantes').innerText = data.faltantes;
     document.getElementById('val-repetidos').innerText = data.repetidos;
     document.getElementById('val-porcentaje').innerText = `${data.porcentaje}%`;
     
     const circle = document.getElementById('progress-circle');
-    circle.style.background = `conic-gradient(var(--accent) ${data.porcentaje}%, var(--glass-border) 0%)`;
+    if (circle) {
+        circle.style.background = `conic-gradient(var(--accent) ${data.porcentaje}%, var(--glass-border) 0%)`;
+    }
 }
 
-async function loadAlbum() {
-    const res = await fetch(`/api/album?user_id=${encodeURIComponent(activeUser)}`);
-    fullAlbumData = await res.json();
+async function loadStats() {
+    const cacheKey = `stats_${activeUser}`;
+    const cached = getCachedData(cacheKey);
+    if (cached) {
+        updateStatsUI(cached);
+        return;
+    }
+    
+    showStatsSkeleton();
+    
+    try {
+        const res = await fetch(`/api/stats?user_id=${encodeURIComponent(activeUser)}`);
+        const data = await res.json();
+        setCachedData(cacheKey, data);
+        updateStatsUI(data);
+    } catch (error) {
+        console.error('Error loading stats:', error);
+    }
+}
+
+function showAlbumSkeleton() {
+    const container = document.getElementById('teams-compact-grid');
+    if (container) {
+        container.innerHTML = `
+            <div class="skeleton-block" style="min-height: 70px;"></div>
+            <div class="skeleton-block" style="min-height: 70px;"></div>
+            <div class="skeleton-block" style="min-height: 70px;"></div>
+            <div class="skeleton-block" style="min-height: 70px;"></div>
+            <div class="skeleton-block" style="min-height: 70px;"></div>
+            <div class="skeleton-block" style="min-height: 70px;"></div>
+            <div class="skeleton-block" style="min-height: 70px;"></div>
+            <div class="skeleton-block" style="min-height: 70px;"></div>
+        `;
+    }
+}
+
+function renderAlbumUI() {
     renderFaltantesFromAlbum();
     renderRepetidosFromAlbum();
     renderGroupProgress();
     renderTeamsCompactCards();
+}
+
+async function loadAlbum() {
+    const cacheKey = `album_${activeUser}`;
+    const cached = getCachedData(cacheKey);
+    if (cached) {
+        fullAlbumData = cached;
+        renderAlbumUI();
+        return;
+    }
+    
+    showAlbumSkeleton();
+    
+    try {
+        const res = await fetch(`/api/album?user_id=${encodeURIComponent(activeUser)}`);
+        fullAlbumData = await res.json();
+        setCachedData(cacheKey, fullAlbumData);
+        renderAlbumUI();
+    } catch (error) {
+        console.error('Error loading album:', error);
+    }
 }
 
 function renderFaltantesFromAlbum() {
@@ -258,7 +421,7 @@ function renderFaltantesFromAlbum() {
                 card.innerHTML = `
                     <div class="team-header">
                         <span class="team-name">
-                            <img src="${crestPath}" alt="${equipo}" class="team-flag-crest"
+                            <img src="${crestPath}" alt="${equipo}" class="team-flag-crest" loading="lazy"
                                 onerror="this.style.display='none'; this.nextElementSibling.style.display='inline';">
                             <span class="team-flag-fallback" style="display:none;">${teamInfo.flag}</span>
                             ${fullName}
@@ -326,7 +489,7 @@ function renderRepetidosFromAlbum() {
                 card.innerHTML = `
                     <div class="team-header">
                         <span class="team-name">
-                            <img src="${crestPath}" alt="${equipo}" class="team-flag-crest"
+                            <img src="${crestPath}" alt="${equipo}" class="team-flag-crest" loading="lazy"
                                 onerror="this.style.display='none'; this.nextElementSibling.style.display='inline';">
                             <span class="team-flag-fallback" style="display:none;">${teamInfo.flag}</span>
                             ${fullName}
@@ -358,6 +521,7 @@ function renderRepetidosFromAlbum() {
 }
 
 function openModal(equipo) {
+    currentOpenTeam = equipo;
     const title = document.getElementById('modal-title');
     const grid = document.getElementById('modal-grid');
     
@@ -469,6 +633,7 @@ function openModal(equipo) {
                 btn.innerText = `${numStr} (+${c.cantidad-1})`;
             }
             
+            clearUserCache(activeUser);
             loadAllData();
         };
         
@@ -481,8 +646,48 @@ function openModal(equipo) {
 }
 
 function closeModal() {
+    currentOpenTeam = null;
     document.getElementById('modal-overlay').classList.add('hidden');
 }
+
+function getAllTeams() {
+    if (!fullAlbumData || !fullAlbumData.estructura) return [];
+    const teams = [];
+    fullAlbumData.estructura.forEach(group => {
+        group.equipos.forEach(equipo => {
+            teams.push(equipo);
+        });
+    });
+    return teams;
+}
+
+document.addEventListener('keydown', (e) => {
+    if (!currentOpenTeam) return;
+    
+    if (e.key === 'Escape') {
+        closeModal();
+        return;
+    }
+    
+    const activeEl = document.activeElement;
+    if (activeEl && (activeEl.tagName === 'INPUT' || activeEl.tagName === 'TEXTAREA')) {
+        return;
+    }
+    
+    if (e.key === 'ArrowRight') {
+        const teams = getAllTeams();
+        const idx = teams.indexOf(currentOpenTeam);
+        if (idx !== -1 && idx < teams.length - 1) {
+            openModal(teams[idx + 1]);
+        }
+    } else if (e.key === 'ArrowLeft') {
+        const teams = getAllTeams();
+        const idx = teams.indexOf(currentOpenTeam);
+        if (idx !== -1 && idx > 0) {
+            openModal(teams[idx - 1]);
+        }
+    }
+});
 
 function switchTab(tabId) {
     // Top Tabs (PC)
@@ -657,6 +862,7 @@ async function updatePlayerName(equipo, numero, nombre) {
     const data = await res.json();
     if (data.success) {
         showToast("Nombre actualizado");
+        clearUserCache(activeUser);
         loadAllData();
         // Opcional: refrescar modal si sigue abierto
         const modalVisible = !document.getElementById('modal-overlay').classList.contains('hidden');
@@ -761,6 +967,7 @@ function createTeamCompactCard(equipo, conseguidos, total, porcentaje) {
                 src="${crestPath}" 
                 alt="${equipo}" 
                 class="team-crest"
+                loading="lazy"
                 onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
             >
             <div class="team-crest-fallback" style="display: none;">

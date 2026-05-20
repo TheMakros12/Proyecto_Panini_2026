@@ -77,6 +77,9 @@ def init_db():
             fecha TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
     ''')
+    cursor.execute('CREATE INDEX IF NOT EXISTS idx_cromos_user_id ON cromos(user_id)')
+    cursor.execute('CREATE INDEX IF NOT EXISTS idx_cromos_equipo ON cromos(equipo)')
+    cursor.execute('CREATE INDEX IF NOT EXISTS idx_historial_user ON historial(user_id)')
     conn.commit()
     conn.close()
 
