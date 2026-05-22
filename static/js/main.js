@@ -593,7 +593,10 @@ function openModal(equipo) {
         if (c.cantidad === 1) btn.classList.add('got');
         if (c.cantidad > 1) {
             btn.classList.add('rep');
-            btn.innerText = `${numStr} (+${c.cantidad-1})`;
+            const badge = document.createElement('span');
+            badge.className = 'cromo-badge';
+            badge.textContent = `×${c.cantidad}`;
+            btn.appendChild(badge);
         }
         
         btn.onclick = async () => {
@@ -625,12 +628,15 @@ function openModal(equipo) {
             btn.style.opacity = '1';
             btn.className = 'cromo-btn'; 
             let numStr = c.numero === 0 ? '00' : c.numero;
-            btn.innerText = numStr;
+            btn.textContent = numStr;
             
             if (c.cantidad === 1) btn.classList.add('got');
             if (c.cantidad > 1) {
                 btn.classList.add('rep');
-                btn.innerText = `${numStr} (+${c.cantidad-1})`;
+                const badge = document.createElement('span');
+                badge.className = 'cromo-badge';
+                badge.textContent = `×${c.cantidad}`;
+                btn.appendChild(badge);
             }
             
             clearUserCache(activeUser);

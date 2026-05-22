@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Nula:wght@700&family=Outfit:wght@400;500;600;700&family=Teko:wght@300;400;500;600;700&display=swap');
+
 :root {
     --bg-color: #030508;
     --glass-bg: rgba(18, 22, 28, 0.65);
@@ -12,6 +14,7 @@
     --gradient-3: #00a859; /* Mexico Green */
     --font-heading: 'Teko', sans-serif;
     --font-body: 'Outfit', sans-serif;
+    --font-nula: 'Nula', sans-serif;
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
@@ -124,20 +127,64 @@ button.btn-primary:hover { transform: translateY(-3px); box-shadow: 0 10px 20px 
 /* Modal */
 .modal-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0, 0, 0, 0.85); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); display: flex; justify-content: center; align-items: center; z-index: 5000; opacity: 1; transition: opacity 0.3s; }
 .modal-overlay.hidden { opacity: 0; pointer-events: none; }
-.modal-content { position: relative; width: 90%; max-width: 500px; max-height: 90vh; overflow-y: auto; background: var(--bg-color); border: 1px solid var(--glass-border); box-shadow: var(--glass-shadow); border-radius: 24px; padding: 2rem; }
+.modal-content { position: relative; width: 90%; max-width: 500px; max-height: 90vh; overflow-y: auto; background: var(--bg-color); border: 1px solid var(--glass-border); box-shadow: var(--glass-shadow); border-radius: 24px; padding: 2rem;
+    /* Fade-out en bordes para indicar scroll */
+    mask-image: linear-gradient(to bottom, transparent 0%, black 3%, black 97%, transparent 100%);
+    -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 3%, black 97%, transparent 100%);
+    /* Ocultar scrollbar pero mantener funcionalidad */
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}
+
+/* Chrome, Safari and Opera */
+.modal-content::-webkit-scrollbar {
+    display: none;
+}
+
 .close-btn { position: absolute; top: 1.5rem; right: 1.5rem; background: rgba(255,255,255,0.05); border: 1px solid var(--glass-border); border-radius: 50%; width: 40px; height: 40px; color: var(--text-muted); font-size: 1.5rem; cursor: pointer; transition: all 0.3s; display: flex; align-items: center; justify-content: center; }
 .close-btn:hover { color: var(--text-main); background: rgba(255,255,255,0.1); transform: rotate(90deg); }
 .modal-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.2rem; margin-top: 1.5rem; align-items: start; }
-.cromo-item { display: flex; flex-direction: column; align-items: center; gap: 0.6rem; height: 100%; }
+.cromo-item { display: flex; flex-direction: column; align-items: center; gap: 0.6rem; height: 100%; overflow: visible; }
 
 @keyframes cromoPop { 0% { transform: scale(1); } 50% { transform: scale(1.15); box-shadow: 0 0 30px var(--accent); } 100% { transform: scale(1); } }
-.cromo-btn { background: rgba(0, 0, 0, 0.4); border: 1px solid var(--glass-border); border-radius: 12px; width: 100%; aspect-ratio: 2.5 / 3.5; color: var(--text-muted); font-family: var(--font-heading); font-size: 2rem; line-height: 1; cursor: pointer; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); position: relative; overflow: hidden; flex-shrink: 0; box-shadow: inset 0 0 10px rgba(0,0,0,0.8); }
+.cromo-btn { background: rgba(0, 0, 0, 0.4); border: 1px solid var(--glass-border); border-radius: 12px; width: 100%; aspect-ratio: 2.5 / 3.5; color: var(--text-muted); font-family: var(--font-heading); font-size: 2rem; line-height: 1; cursor: pointer; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); position: relative; overflow: visible; flex-shrink: 0; box-shadow: inset 0 0 10px rgba(0,0,0,0.8); display: flex; align-items: center; justify-content: center; }
 .cromo-btn:hover { transform: translateY(-5px); background: rgba(255, 255, 255, 0.05); border-color: rgba(255,255,255,0.3); color: var(--text-main); box-shadow: 0 10px 20px rgba(0,0,0,0.5); }
 .cromo-btn:active { transform: scale(0.95); transition: 0.1s; }
 .cromo-btn.got { background: linear-gradient(135deg, var(--gradient-1), var(--gradient-2)); border-color: rgba(255,255,255,0.4); color: white; box-shadow: 0 8px 25px rgba(0, 85, 255, 0.5); text-shadow: 0 2px 4px rgba(0,0,0,0.5); animation: cromoPop 0.4s ease-out; }
 .cromo-btn.rep { background: linear-gradient(135deg, var(--gradient-3), #059669); border-color: rgba(255,255,255,0.4); color: white; box-shadow: 0 8px 25px rgba(0, 168, 89, 0.5); text-shadow: 0 2px 4px rgba(0,0,0,0.5); animation: cromoPop 0.4s ease-out; }
 .cromo-name { font-size: 0.75rem; color: var(--text-muted); text-align: center; width: 100%; min-height: 2.2rem; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; line-height: 1.2; cursor: pointer; transition: color 0.2s; font-weight: 400; }
 .cromo-name:hover { color: var(--text-main); }
+
+/* Badge flotante de cantidad para cromos repetidos */
+.cromo-badge {
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    min-width: 24px;
+    height: 24px;
+    padding: 0 6px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, #f59e0b, #ef4444);
+    color: white;
+    font-family: var(--font-body);
+    font-size: 0.7rem;
+    font-weight: 800;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 3px 10px rgba(245, 158, 11, 0.5), 0 0 0 2px var(--bg-color);
+    z-index: 2;
+    pointer-events: none;
+    animation: badgePop 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275) both;
+    letter-spacing: 0.5px;
+    line-height: 1;
+}
+
+@keyframes badgePop {
+    0% { transform: scale(0); opacity: 0; }
+    60% { transform: scale(1.2); }
+    100% { transform: scale(1); opacity: 1; }
+}
 
 /* Group Progress Section */
 .group-progress-section { margin-bottom: 2rem; }
@@ -659,34 +706,34 @@ input:checked + .slider:before { transform: translateX(24px); }
 }
 
 .modal-team-crest {
-    width: 50px;
-    height: 50px;
-    border-radius: 8px;
+    width: 80px;
+    height: 80px;
+    border-radius: 12px;
     object-fit: contain;
     flex-shrink: 0;
     filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
     background: rgba(255, 255, 255, 0.05);
-    padding: 4px;
+    padding: 6px;
     border: 1px solid var(--glass-border);
 }
 
 .modal-team-crest-fallback {
-    width: 50px;
-    height: 50px;
-    border-radius: 8px;
+    width: 80px;
+    height: 80px;
+    border-radius: 12px;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 28px;
+    font-size: 42px;
     flex-shrink: 0;
     background: rgba(255, 255, 255, 0.05);
     border: 1px solid var(--glass-border);
 }
 
 .modal-team-name {
-    font-family: var(--font-heading);
+    font-family: var(--font-nula);
     font-size: 2.8rem;
-    font-weight: 600;
+    font-weight: 700;
     line-height: 1;
     color: var(--text-main);
     letter-spacing: 1px;
@@ -704,12 +751,23 @@ input:checked + .slider:before { transform: translateX(24px); }
     }
     
     .modal-team-crest, .modal-team-crest-fallback {
-        width: 40px;
-        height: 40px;
+        width: 65px;
+        height: 65px;
     }
     
     .modal-team-crest-fallback {
-        font-size: 22px;
+        font-size: 36px;
+    }
+}
+
+@media (max-width: 480px) {
+    .modal-team-crest, .modal-team-crest-fallback {
+        width: 60px;
+        height: 60px;
+    }
+    
+    .modal-team-crest-fallback {
+        font-size: 32px;
     }
 }
 
@@ -826,21 +884,13 @@ input:checked + .slider:before { transform: translateX(24px); }
    CONTADOR DE POSICIÓN EN EL MODAL
    ======================================== */
 .modal-counter {
-    position: sticky;
-    bottom: 0;
-    left: 0;
-    right: 0;
     text-align: center;
     font-size: 0.78rem;
     color: var(--text-muted);
     font-weight: 600;
     letter-spacing: 1px;
-    background: rgba(3, 5, 8, 0.8);
-    backdrop-filter: blur(8px);
     padding: 0.5rem 1rem;
-    border-top: 1px solid var(--glass-border);
     margin-top: 1.5rem;
-    border-radius: 0 0 20px 20px;
     pointer-events: none;
 }
 

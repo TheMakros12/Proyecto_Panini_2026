@@ -67,6 +67,7 @@ Toda la documentación técnica se ha movido a la carpeta `docs/` para mantener 
 - 📖 [**Guía de Instalación Detallada**](docs/INSTALL.md)
 - ⚙️ [**API Endpoints**](docs/API.md)
 - 🤖 [**Comandos del Bot de Telegram**](docs/BOT_COMMANDS.md)
+- 🧪 [**Guía de Pruebas**](docs/TESTING.md)
 - 🚀 [**Guía de Despliegue (Producción)**](docs/DEPLOYMENT.md)
 
 ---
